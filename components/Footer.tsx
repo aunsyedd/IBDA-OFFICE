@@ -96,18 +96,25 @@ export default function Footer({ locale, dict }: { locale: Locale; dict: Dict })
       </div>
 
 <div className="border-t border-white/10 py-5 text-center text-xs text-white/50">
-  © {year} {dict.footer.rights}
-  <span className="mx-5">|</span>
+  <div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-center sm:gap-0">
+
+    <span>© {year} {dict.footer.rights}</span>
+    <span className="mx-5 hidden sm:inline">|</span>
   {dict.footer.developedBy}{" "}
+      <span>
+
   <a
-   href={dict.footer.companyUrl}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="text-white transition hover:text-gold-400"
+
+      href={dict.footer.companyUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-white transition hover:text-gold-400"
   >
      {dict.footer.company} 🚀
   </a>
+    </span>
 </div>
-    </footer>
+</div>
+    </footer>//footer
   );
 }
