@@ -110,7 +110,7 @@ export default function Footer({ locale, dict }: { locale: Locale; dict: Dict })
         rel="noopener noreferrer"
         className="text-white transition hover:text-gold-400"
   >
-     {dict.footer.company} 🚀
+       <span className="ml-2">{ dict.footer.company} 🚀</span>
   </a>
     </span>
 </div>

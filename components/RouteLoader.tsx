@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import PageLoader from "./PageLoader";
 
 const FADE_MS = 350;
-const SHOW_DELAY_MS = 60;
-const MIN_VISIBLE_MS = 1000;
+/** Loader stays visible at least this long from navigation start (click / back-forward). */
+const MIN_ROUTE_MS = 1000;
 
 function isInternalNavigation(anchor: HTMLAnchorElement, pathname: string): boolean {
   const href = anchor.getAttribute("href");
@@ -28,71 +28,82 @@ export default function RouteLoader({ label }: { label: string }) {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const [active, setActive] = useState(false);
+
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navigating = useRef(false);
   const mountedRef = useRef(false);
-  const visibleSince = useRef(0);
+  const navigationStartedAt = useRef(0);
+  const pathnameRef = useRef(pathname);
+  const isFirstPathname = useRef(true);
 
-  const clearTimers = useCallback(() => {
+  const clearHideTimer = useCallback(() => {
     if (hideTimer.current) clearTimeout(hideTimer.current);
-    if (showTimer.current) clearTimeout(showTimer.current);
     hideTimer.current = null;
-    showTimer.current = null;
   }, []);
 
-  const fadeIn = useCallback(() => {
+  const showLoader = useCallback(() => {
+    if (mountedRef.current) return;
     mountedRef.current = true;
-    visibleSince.current = Date.now();
     setMounted(true);
     requestAnimationFrame(() => {
       requestAnimationFrame(() => setActive(true));
     });
   }, []);
 
-  const fadeOut = useCallback(() => {
+  const hideLoader = useCallback(() => {
     setActive(false);
     hideTimer.current = setTimeout(() => {
       mountedRef.current = false;
+      navigating.current = false;
       setMounted(false);
     }, FADE_MS);
   }, []);
 
-  const startLoading = useCallback(() => {
-    if (navigating.current) return;
+  const beginNavigation = useCallback(() => {
+    clearHideTimer();
     navigating.current = true;
-    clearTimers();
-    showTimer.current = setTimeout(fadeIn, SHOW_DELAY_MS);
-  }, [clearTimers, fadeIn]);
+    navigationStartedAt.current = Date.now();
+    showLoader();
+  }, [clearHideTimer, showLoader]);
 
-  const finishLoading = useCallback(() => {
-    navigating.current = false;
-    clearTimers();
+  const completeNavigation = useCallback(() => {
+    if (!navigating.current && !mountedRef.current) return;
 
-    if (!mountedRef.current) return;
+    clearHideTimer();
 
-    const elapsed = Date.now() - visibleSince.current;
-    const wait = Math.max(0, MIN_VISIBLE_MS - elapsed);
+    const elapsed = Date.now() - navigationStartedAt.current;
+    const wait = Math.max(0, MIN_ROUTE_MS - elapsed);
 
-    hideTimer.current = setTimeout(fadeOut, wait);
-  }, [clearTimers, fadeOut]);
+    hideTimer.current = setTimeout(hideLoader, wait);
+  }, [clearHideTimer, hideLoader]);
 
+  // Route finished — wait until full 1s has passed since navigation started
   useEffect(() => {
-    finishLoading();
-  }, [pathname, finishLoading]);
+    if (isFirstPathname.current) {
+      isFirstPathname.current = false;
+      pathnameRef.current = pathname;
+      return;
+    }
 
+    if (pathnameRef.current !== pathname) {
+      pathnameRef.current = pathname;
+      completeNavigation();
+    }
+  }, [pathname, completeNavigation]);
+
+  // Link clicks + browser back/forward
   useEffect(() => {
     const onClick = (event: MouseEvent) => {
       if (event.defaultPrevented || event.button !== 0) return;
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
 
       const anchor = (event.target as Element).closest("a");
-      if (!anchor || !isInternalNavigation(anchor, pathname)) return;
+      if (!anchor || !isInternalNavigation(anchor, pathnameRef.current)) return;
 
-      startLoading();
+      beginNavigation();
     };
 
-    const onPopState = () => startLoading();
+    const onPopState = () => beginNavigation();
 
     document.addEventListener("click", onClick, true);
     window.addEventListener("popstate", onPopState);
@@ -100,9 +111,9 @@ export default function RouteLoader({ label }: { label: string }) {
     return () => {
       document.removeEventListener("click", onClick, true);
       window.removeEventListener("popstate", onPopState);
-      clearTimers();
+      clearHideTimer();
     };
-  }, [pathname, startLoading, clearTimers]);
+  }, [beginNavigation, clearHideTimer]);
 
   if (!mounted) return null;
 

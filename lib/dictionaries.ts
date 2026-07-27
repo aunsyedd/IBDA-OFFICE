@@ -423,7 +423,7 @@ const en = {
     contact: "Contact",
     rights: "IBDA Office for Electronic Services. All rights reserved.",
     developedBy: "Developed and Engineered by ",
-    company: "Nexora Tech ",
+    company: " Nexora Tech ",
     companyUrl: "https://www.nexoratech.info/",
   },
   common: {

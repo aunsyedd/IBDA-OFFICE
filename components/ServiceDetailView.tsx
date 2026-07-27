@@ -54,7 +54,7 @@ export default function ServiceDetailView({
             <span
               className={`flex shrink-0 items-center justify-center rounded-3xl p-3 ${accents[index % accents.length]}`}
             >
-              <ServiceLogo serviceKey={serviceKey} title={item.title} size="xl" framed={false} />
+              {/* <ServiceLogo serviceKey={serviceKey} title={item.title} size="xl" framed={false} /> */}
             </span>
             <div>
               <h1 className="text-3xl font-black sm:text-4xl">{item.title}</h1>
