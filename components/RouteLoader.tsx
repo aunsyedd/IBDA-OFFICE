@@ -6,6 +6,7 @@ import PageLoader from "./PageLoader";
 
 const FADE_MS = 350;
 const SHOW_DELAY_MS = 60;
+const MIN_VISIBLE_MS = 1000;
 
 function isInternalNavigation(anchor: HTMLAnchorElement, pathname: string): boolean {
   const href = anchor.getAttribute("href");
@@ -31,6 +32,7 @@ export default function RouteLoader({ label }: { label: string }) {
   const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navigating = useRef(false);
   const mountedRef = useRef(false);
+  const visibleSince = useRef(0);
 
   const clearTimers = useCallback(() => {
     if (hideTimer.current) clearTimeout(hideTimer.current);
@@ -41,6 +43,7 @@ export default function RouteLoader({ label }: { label: string }) {
 
   const fadeIn = useCallback(() => {
     mountedRef.current = true;
+    visibleSince.current = Date.now();
     setMounted(true);
     requestAnimationFrame(() => {
       requestAnimationFrame(() => setActive(true));
@@ -65,7 +68,13 @@ export default function RouteLoader({ label }: { label: string }) {
   const finishLoading = useCallback(() => {
     navigating.current = false;
     clearTimers();
-    if (mountedRef.current) fadeOut();
+
+    if (!mountedRef.current) return;
+
+    const elapsed = Date.now() - visibleSince.current;
+    const wait = Math.max(0, MIN_VISIBLE_MS - elapsed);
+
+    hideTimer.current = setTimeout(fadeOut, wait);
   }, [clearTimers, fadeOut]);
 
   useEffect(() => {

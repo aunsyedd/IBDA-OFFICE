@@ -1,6 +1,15 @@
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, Clock, ListChecks, Sparkles } from "lucide-react";
-import { serviceIcons } from "@/components/ServicesSection";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  FileText,
+  ListChecks,
+  Sparkles,
+  Users,
+} from "lucide-react";
+import ServiceLogo from "@/components/ServiceLogo";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import type { Dict } from "@/lib/dictionaries";
 import { getServiceDetail } from "@/lib/service-details";
@@ -8,9 +17,9 @@ import { site, type Locale } from "@/lib/i18n";
 import type { ServiceKey } from "@/lib/services";
 
 const accents = [
-  "bg-teal-600/10 text-teal-700",
-  "bg-gold-500/15 text-gold-600",
-  "bg-navy-800/10 text-navy-800",
+  "bg-teal-600/5",
+  "bg-gold-500/8",
+  "bg-navy-800/5",
 ];
 
 export default function ServiceDetailView({
@@ -25,8 +34,7 @@ export default function ServiceDetailView({
   index: number;
 }) {
   const item = dict.services.items.find((s) => s.key === serviceKey)!;
-  const detail = getServiceDetail(locale, serviceKey);
-  const Icon = serviceIcons[serviceKey];
+  const detail = getServiceDetail(locale, item);
   const waMessage = `${item.title} — ${dict.servicePage.waMessage}`;
 
   return (
@@ -44,9 +52,9 @@ export default function ServiceDetailView({
 
           <div className="mt-8 flex flex-col gap-6 sm:flex-row sm:items-start">
             <span
-              className={`grid h-20 w-20 shrink-0 place-items-center rounded-3xl ${accents[index % accents.length]}`}
+              className={`flex shrink-0 items-center justify-center rounded-3xl p-3 ${accents[index % accents.length]}`}
             >
-              <Icon className="h-10 w-10" strokeWidth={1.6} aria-hidden="true" />
+              <ServiceLogo serviceKey={serviceKey} title={item.title} size="xl" framed={false} />
             </span>
             <div>
               <h1 className="text-3xl font-black sm:text-4xl">{item.title}</h1>
@@ -103,16 +111,59 @@ export default function ServiceDetailView({
             {dict.servicePage.includes}
           </h2>
           <ul className="mt-5 space-y-2.5">
-            {detail.includes.map((inc) => (
+            {detail.includes.map((inc) => {
+              const subWaMessage = `${dict.servicePage.waSubPrefix} ${inc} (${item.title})`;
+              return (
+                <li
+                  key={inc}
+                  className="group flex items-center justify-between gap-3 rounded-xl border border-line bg-white px-4 py-3 shadow-card transition hover:border-wa/40 hover:shadow-md"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="h-2 w-2 shrink-0 rounded-full bg-gold-500" aria-hidden="true" />
+                    <span className="text-sm font-semibold leading-6 text-navy-800/85">{inc}</span>
+                  </div>
+                  <a
+                    href={site.waLink(subWaMessage)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="focus-gold inline-flex shrink-0 items-center justify-center rounded-full p-2 text-wa transition hover:bg-wa/10 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5"
+                    aria-label={`${dict.servicePage.askWhatsApp}: ${inc}`}
+                    title={dict.servicePage.askWhatsApp}
+                  >
+                    <ArrowRight className="h-4 w-4 rtl:rotate-180" strokeWidth={2.5} aria-hidden="true" />
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+
+        {/* Documents */}
+        <section className="mt-12">
+          <h2 className="flex items-center gap-2 text-xl font-black text-navy-900">
+            <FileText className="h-6 w-6 text-gold-500" aria-hidden="true" />
+            {dict.servicePage.documents}
+          </h2>
+          <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+            {detail.documents.map((doc) => (
               <li
-                key={inc}
-                className="flex items-center gap-3 rounded-xl border border-line bg-white px-4 py-3 text-sm font-semibold text-navy-800/85 shadow-card"
+                key={doc}
+                className="flex items-start gap-3 rounded-xl border border-line bg-white p-4 text-sm font-semibold leading-6 text-navy-800/85 shadow-card"
               >
-                <span className="h-2 w-2 shrink-0 rounded-full bg-gold-500" aria-hidden="true" />
-                {inc}
+                <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-teal-700" aria-hidden="true" />
+                {doc}
               </li>
             ))}
           </ul>
+        </section>
+
+        {/* Who is this for */}
+        <section className="mt-12 rounded-2xl border border-line bg-white p-6 shadow-card">
+          <h2 className="flex items-center gap-2 text-xl font-black text-navy-900">
+            <Users className="h-6 w-6 text-gold-500" aria-hidden="true" />
+            {dict.servicePage.whoFor}
+          </h2>
+          <p className="mt-3 text-sm leading-7 text-navy-800/80">{detail.whoFor}</p>
         </section>
 
         {/* Process */}

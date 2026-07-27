@@ -1,40 +1,11 @@
 import Link from "next/link";
-import {
-  ArrowRightLeft,
-  Building2,
-  ClipboardCheck,
-  IdCard,
-  Landmark,
-  Leaf,
-  Repeat,
-  Stamp,
-  UserRoundCheck,
-  Users,
-  type LucideIcon,
-} from "lucide-react";
+import ServiceLogo from "@/components/ServiceLogo";
 import type { Dict } from "@/lib/dictionaries";
 import { type Locale } from "@/lib/i18n";
 import { servicePath } from "@/lib/services";
 
-export const serviceIcons: Record<string, LucideIcon> = {
-  commercial: Building2,
-  "labor-tax": Landmark,
-  "social-insurance": Users,
-  muqeem: UserRoundCheck,
-  qiwa: Leaf,
-  attestation: Stamp,
-  "labor-transfer": ArrowRightLeft,
-  "services-transfer": Repeat,
-  "work-permits": ClipboardCheck,
-  residency: IdCard,
-};
-
-// Alternating accents like the reference cards (teal / gold / navy)
-const accents = [
-  "bg-teal-600/10 text-teal-700",
-  "bg-gold-500/15 text-gold-600",
-  "bg-navy-800/10 text-navy-800",
-];
+// How many sub-services to preview on each card before "+N more"
+const MAX_VISIBLE_SUB_SERVICES = 5;
 
 export default function ServicesSection({
   locale,
@@ -50,28 +21,59 @@ export default function ServicesSection({
           <h2 className="heading-rule text-3xl font-black text-navy-900">
             {dict.services.heading}
           </h2>
-          <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-navy-800/70">
+          <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-navy-800/70">
             {dict.services.sub}
           </p>
         </div>
 
-        <ul className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-          {dict.services.items.map((s, i) => {
-            const Icon = serviceIcons[s.key];
+        <ul className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {dict.services.items.map((s) => {
+            const hidden = s.subServices.length - MAX_VISIBLE_SUB_SERVICES;
             return (
               <li key={s.key}>
                 <Link
                   href={servicePath(locale, s.key)}
-                  className="focus-gold group flex h-full flex-col items-center gap-3 rounded-2xl border border-line bg-white px-3 py-6 text-center transition hover:-translate-y-1 hover:border-gold-500 hover:shadow-card"
+                  className="focus-gold group flex h-full flex-col gap-4 rounded-2xl border border-line bg-white p-5 text-start transition hover:-translate-y-1 hover:border-gold-500 hover:shadow-card"
                 >
-                  <span
-                    className={`grid h-14 w-14 place-items-center rounded-2xl transition group-hover:scale-105 ${accents[i % accents.length]}`}
-                  >
-                    <Icon className="h-7 w-7" strokeWidth={1.6} aria-hidden="true" />
-                  </span>
-                  <span className="text-sm font-extrabold leading-5 text-navy-900">
-                    {s.title}
-                  </span>
+                  <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+                    <ServiceLogo
+                      serviceKey={s.key}
+                      title={s.title}
+                      size="md"
+                      className="transition group-hover:scale-105"
+                    />
+                    <span className="text-sm font-extrabold leading-5 text-navy-900">
+                      {s.title}
+                    </span>
+                  </div>
+
+                  <ul className="space-y-1.5">
+                    {s.subServices.slice(0, MAX_VISIBLE_SUB_SERVICES).map((sub) => (
+                      <li
+                        key={sub}
+                        className="flex items-start gap-2 text-xs leading-5 text-navy-800/70"
+                      >
+                        <span
+                          className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold-500"
+                          aria-hidden="true"
+                        />
+                        {sub}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="mt-auto flex items-center justify-between gap-2">
+                    {hidden > 0 ? (
+                      <span className="text-xs font-bold text-teal-700">
+                        +{hidden} {dict.services.moreLabel}
+                      </span>
+                    ) : (
+                      <span />
+                    )}
+                    <span className="text-xs font-bold text-navy-900 opacity-0 transition group-hover:opacity-100">
+                      {dict.services.learnMore} ←
+                    </span>
+                  </div>
                 </Link>
               </li>
             );

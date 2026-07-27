@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, MessageCircle } from "lucide-react";
-import { serviceIcons } from "@/components/ServicesSection";
+import ServiceLogo from "@/components/ServiceLogo";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { getDict } from "@/lib/dictionaries";
 import { isLocale, site } from "@/lib/i18n";
@@ -18,9 +18,9 @@ export async function generateMetadata({
 }
 
 const accents = [
-  "bg-teal-600/10 text-teal-700",
-  "bg-gold-500/15 text-gold-600",
-  "bg-navy-800/10 text-navy-800",
+  "bg-teal-600/5",
+  "bg-gold-500/8",
+  "bg-navy-800/5",
 ];
 
 export default async function ServicesPage({
@@ -45,7 +45,6 @@ export default async function ServicesPage({
 
       <ul className="mt-12 grid gap-5 sm:grid-cols-2">
         {dict.services.items.map((s, i) => {
-          const Icon = serviceIcons[s.key];
           return (
             <li
               key={s.key}
@@ -53,9 +52,9 @@ export default async function ServicesPage({
               className="flex scroll-mt-24 flex-col rounded-2xl border border-line bg-white p-6 shadow-card sm:flex-row sm:items-start"
             >
               <span
-                className={`grid h-14 w-14 shrink-0 place-items-center rounded-2xl ${accents[i % accents.length]}`}
+                className={`flex shrink-0 items-center justify-center rounded-2xl p-2 ${accents[i % accents.length]}`}
               >
-                <Icon className="h-7 w-7" strokeWidth={1.6} aria-hidden="true" />
+                <ServiceLogo serviceKey={s.key} title={s.title} size="lg" />
               </span>
               <div className="mt-4 sm:mt-0 sm:ms-4">
                 <h2 className="text-lg font-extrabold text-navy-900">{s.title}</h2>
